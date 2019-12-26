@@ -1,0 +1,6 @@
+.env
+pyvenv.cfg
+geckodriver.log
+lib/
+include/
+bin/
