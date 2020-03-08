@@ -5,3 +5,4 @@ lib/
 include/
 bin/
 __pycache__
+rss_reader.py
