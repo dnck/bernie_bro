@@ -2,7 +2,7 @@
 
 `bernie_bro.py` searches for recent news articles from Washington Post, NPR, NYTimes, and Reuters. When the articles are related to Trump or Sanders, it ranks the article for sentiment. If the Trump sentiment is negative, it shares a message and the link to the article on the user's FB homepage. If the Sanders sentiment is positive, it shares a message and the link to the article on the user's FB page. It posts only 1 message and 1 article per person per run. It can therefore be set up in a cron job to run multiple times a day, week, month, etc.
   
-:heavy_check_mark: 
+:heavy_check_mark: Vote for Bernie Sanders!
   
 
 ## Requirement
