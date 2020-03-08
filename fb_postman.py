@@ -30,6 +30,7 @@ class FBPostMan():
 
     def set_up(self):
         options = Options()
+        options.add_argument("--headless")
         options.set_preference("dom.webnotifications.enabled", False)
         self.browser = webdriver.Firefox(options=options)
 
@@ -64,7 +65,7 @@ class FBPostMan():
             post_button = \
                 self.browser.find_element_by_xpath(self.post_button_syntax)
             if post_button:
-                print(post_button)
+                #print(post_button)
                 post_button.click()
         except:
             print("Could not find button.")
