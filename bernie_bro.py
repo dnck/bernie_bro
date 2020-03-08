@@ -140,8 +140,10 @@ if __name__ == "__main__":
                 testimonial = TextBlob(article["summary"])
                 if target == "TRUMP" and testimonial.sentiment.polarity < negative_post_threshold:
                     negative_post = "Trump is an idiot! Vote 'em out! {}".format(article["url"])
+                    negative_post_threshold = testimonial.sentiment.polarity
                 if testimonial.sentiment.polarity > postive_post_threshold and target == "SANDERS":
                     negative_post = "#BernieBros {}".format(article["url"])
+                    postive_post_threshold = testimonial.sentiment.polarity
     if bool(negative_post):
         poster.post_sentiment(negative_post)
     if bool(postive_post):
