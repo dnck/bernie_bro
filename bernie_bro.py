@@ -8,15 +8,19 @@ common_english_words = [
                         "a", "about", "after", "all", "an", "and", "any",
                         "are", "as", "at", "be", "been", "before", "but",
                         "by", "can", "could", "did", "do", "down", "first",
-                        "for", "from", "good", "great", "had", "has", "have", "he", "her", "him", "his", "if", "in", "into", "is", "it", "its", "know", "like", "little", "made", "man",
+                        "for", "from", "good", "great", "had", "has", "have", 
+                        "he", "her", "him", "his", "if", "in", "into", "is", 
+                        "it", "its", "know", "like", "little", "made", "man",
                         "may", "me", "men", "more", "Mr", "much", "must",
                         "my", "no", "not", "now", "of", "on", "one", "only",
                         "or", "other", "our", "out", "over", "said", "see",
-                        "she", "should", "so", "some", "such", "than", "that", "the", "their", "them", "then", "there", "these",
+                        "she", "should", "so", "some", "such", "than", "that", 
+                        "the", "their", "them", "then", "there", "these",
                         "they", "this", "time", "to", "two", "up", "upon",
                         "us", "very", "was", "we", "were", "what", "when",
                         "which", "who", "will", "with", "would", "you", "your"
-                        ]    
+]    
+
 class RssReader():
     def __init__(self):
         self.result_set = []
@@ -26,6 +30,7 @@ class RssReader():
         return feed
     def sanitize(self, text):
         return bleach.clean(text, strip=True)
+        
 class WashingtonPostParser(RssReader):
     def __init__(self):
         self.news_endpoints = [
@@ -34,6 +39,7 @@ class WashingtonPostParser(RssReader):
         
         ]        
         self.result_set = []
+        
     def parse_feed(self):
         for url in self.news_endpoints:
             feed = self.get_feed(url)
@@ -45,6 +51,7 @@ class WashingtonPostParser(RssReader):
                     "url": entry["links"][0]["href"].split("/?utm_source")[0]
                     }
                 )
+                
 class NPRRssParser(RssReader):
     def __init__(self):
         self.news_endpoints = [
@@ -62,6 +69,7 @@ class NPRRssParser(RssReader):
                     "url": entry["link"]
                     }
                 )
+                
 class NYTRssParser(RssReader):
     def __init__(self):
         self.news_endpoints = [
@@ -80,6 +88,7 @@ class NYTRssParser(RssReader):
                     "url": entry["link"]
                     }
                 )
+                
 class ReutersParser(RssReader):
     def __init__(self):
         self.news_endpoints = ["http://feeds.reuters.com/reuters/topNews"]
@@ -105,8 +114,11 @@ class FbPoster():
         self.poster.post_news(msg=message)
         time.sleep(1)
         self.poster.tear_down()
+        
 if __name__ == "__main__":
+    
     ALL_READER_RESULTS = []
+    
     poster = FbPoster()
     for reader in [
         ReutersParser(), 
@@ -116,8 +128,10 @@ if __name__ == "__main__":
     ]:
         reader.parse_feed()
         ALL_READER_RESULTS += reader.result_set
+        
     postive_post = False
     negative_post = False
+    
     for article in ALL_READER_RESULTS:
         for target in ["TRUMP", "SANDER"]:
             if target in article["title"]:
@@ -129,7 +143,11 @@ if __name__ == "__main__":
                     #print(testimonial.sentiment)
                     #print("")
                     negative_post = True
-                    poster.post_sentiment("Trump is an idiot! Vote 'em out! {}".format(article["url"]))
+                    poster.post_sentiment(
+                        "Trump is an idiot! Vote 'em out! {}".format(
+                            article["url"]
+                        )
+                    )
                 if testimonial.sentiment.polarity > 0 and target == "SANDERS" and not positive_post:
                     #print(article["title"])
                     #print(article["url"])
@@ -137,5 +155,8 @@ if __name__ == "__main__":
                     #print(testimonial.sentiment)
                     #print("")
                     positive_post = True
-                    poster.post_sentiment("#BernieBros {}".format(article["url"]))
+                    poster.post_sentiment("#BernieBros {}".format(
+                        article["url"]
+                        )
+                    )
 
