@@ -68,11 +68,3 @@ class FBPostMan():
                 post_button.click()
         except:
             print("Could not find button.")
-        
-if __name__ == "__main__":
-    poster = FBPostMan()
-    poster.set_up()
-    poster.login()
-    poster.post_news(msg="This is a test!")
-    time.sleep(1)
-    poster.tear_down()

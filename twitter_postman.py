@@ -35,7 +35,3 @@ class TwitterPostMan():
         for t in tweets_for_csv:
             print(t)
 
-
-if __name__ == "__main__":
-    post_man = TwitterPostMan()
-    post_man.show_tweets()
