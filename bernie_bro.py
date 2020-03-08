@@ -129,34 +129,21 @@ if __name__ == "__main__":
         reader.parse_feed()
         ALL_READER_RESULTS += reader.result_set
         
-    postive_post = False
-    negative_post = False
+    postive_post_threshold = 0
+    postive_post = ""
+    negative_post_threshold = 0
+    negative_post = ""
     
     for article in ALL_READER_RESULTS:
         for target in ["TRUMP", "SANDER"]:
             if target in article["title"]:
                 testimonial = TextBlob(article["summary"])
-                if testimonial.sentiment.polarity < 0 and target == "TRUMP" and not negative_post:
-                    #print(article["title"])
-                    #print(article["url"])
-                    #print(article["summary"])
-                    #print(testimonial.sentiment)
-                    #print("")
-                    negative_post = True
-                    poster.post_sentiment(
-                        "Trump is an idiot! Vote 'em out! {}".format(
-                            article["url"]
-                        )
-                    )
-                if testimonial.sentiment.polarity > 0 and target == "SANDERS" and not positive_post:
-                    #print(article["title"])
-                    #print(article["url"])
-                    #print(article["summary"])
-                    #print(testimonial.sentiment)
-                    #print("")
-                    positive_post = True
-                    poster.post_sentiment("#BernieBros {}".format(
-                        article["url"]
-                        )
-                    )
+                if target == "TRUMP" and testimonial.sentiment.polarity < negative_post_threshold:
+                    negative_post = "Trump is an idiot! Vote 'em out! {}".format(article["url"])
+                if testimonial.sentiment.polarity > postive_post_threshold and target == "SANDERS":
+                    negative_post = "#BernieBros {}".format(article["url"])
+    if bool(negative_post):
+        poster.post_sentiment(negative_post)
+    if bool(postive_post):
+        poster.post_sentiment(negative_post)
 
