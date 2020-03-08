@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.firefox.options import Options
+from selenium.webdriver.common.by import By
 
 USER = None
 PASS = None
@@ -22,9 +23,9 @@ class FBPostMan():
     def __init__(self):
         get_secrets()
         self.edit_post_box_syntax =  \
-                        "//textarea[contains(@aria-label, 'on your mind')]"
+            "//textarea[contains(@aria-label, 'on your mind')]"
         self.post_button_syntax = \
-                            "//*[@data-testid='react-composer-post-button']"
+            "//div[@id='pagelet_composer']//button[@type='submit']"        
         self.logged_in = False
 
     def set_up(self):
@@ -58,10 +59,16 @@ class FBPostMan():
         post_box=self.browser.find_element_by_xpath(self.edit_post_box_syntax)
         post_box.send_keys(msg)
         time.sleep(2)
-        post_button = \
-            self.browser.find_element_by_xpath(self.post_button_syntax)
-        post_button.click()
-
+        
+        try:
+            post_button = \
+                self.browser.find_element_by_xpath(self.post_button_syntax)
+            if post_button:
+                print(post_button)
+                post_button.click()
+        except:
+            print("Could not find button.")
+        
 if __name__ == "__main__":
     poster = FBPostMan()
     poster.set_up()

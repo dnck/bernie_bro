@@ -2,8 +2,8 @@ import feedparser
 import requests
 import bleach
 from textblob import TextBlob
-# from bs4 import BeautifulSoup
-# Top 100-1 english words. (with "I" removed)
+import fb_postman
+
 common_english_words = [
                         "a", "about", "after", "all", "an", "and", "any",
                         "are", "as", "at", "be", "been", "before", "but",
@@ -95,18 +95,19 @@ class ReutersParser(RssReader):
                     "url": entry["link"]
                     }
                 )
-# class HTMLParser():
-#     def __init__(self):
-#         self.url = "https://apnews.com/apf-usnews"
-#         self.html = None
-#     def get_page(self):
-#         self.html = requests.get(self.url).text
-#     def parse(self):
-#         self.get_page()
-#         self.soup = BeautifulSoup(self.html)
-#         self.titles = self.soup.find_all('h1', "Component-h1-0-2-79")
+
+class FbPoster():
+    def __init__(self):
+        self.poster = fb_postman.FBPostMan()
+    def post_sentiment(self, message):
+        self.poster.set_up()
+        self.poster.login()
+        self.poster.post_news(msg=message)
+        time.sleep(1)
+        self.poster.tear_down()
 if __name__ == "__main__":
     ALL_READER_RESULTS = []
+    poster = FbPoster()
     for reader in [
         ReutersParser(), 
         WashingtonPostParser(), 
@@ -115,20 +116,26 @@ if __name__ == "__main__":
     ]:
         reader.parse_feed()
         ALL_READER_RESULTS += reader.result_set
+    postive_post = False
+    negative_post = False
     for article in ALL_READER_RESULTS:
         for target in ["TRUMP", "SANDER"]:
             if target in article["title"]:
                 testimonial = TextBlob(article["summary"])
-                if testimonial.sentiment.polarity < 0 and target == "TRUMP":        
-                    print(article["title"])
-                    print(article["url"])
-                    print(article["summary"])
-                    print(testimonial.sentiment)
-                    print("")
-                if testimonial.sentiment.polarity > 0 and target == "SANDERS":        
-                    print(article["title"])
-                    print(article["url"])
-                    print(article["summary"])
-                    print(testimonial.sentiment)
-                    print("")
+                if testimonial.sentiment.polarity < 0 and target == "TRUMP" and not negative_post:
+                    #print(article["title"])
+                    #print(article["url"])
+                    #print(article["summary"])
+                    #print(testimonial.sentiment)
+                    #print("")
+                    negative_post = True
+                    poster.post_sentiment("Trump is an idiot! Vote 'em out! {}".format(article["url"]))
+                if testimonial.sentiment.polarity > 0 and target == "SANDERS" and not positive_post:
+                    #print(article["title"])
+                    #print(article["url"])
+                    #print(article["summary"])
+                    #print(testimonial.sentiment)
+                    #print("")
+                    positive_post = True
+                    poster.post_sentiment("#BernieBros {}".format(article["url"]))
 

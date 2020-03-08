@@ -4,3 +4,4 @@ geckodriver.log
 lib/
 include/
 bin/
+__pycache__
