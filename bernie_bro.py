@@ -1,4 +1,7 @@
 import time
+import random
+import json
+import random
 import feedparser
 import requests
 import bleach
@@ -116,10 +119,26 @@ class FbPoster():
         time.sleep(1)
         self.poster.tear_down()
         
+class Logger():
+    def __init__(self):
+        self.log = "/home/dnck/bernie_bro/log.json"
+    def write_to_log(self, data):
+        with open(self.log, 'a') as outfile:
+            outfile.write(json.dumps(data))
+            outfile.write(",")
+            outfile.close()   
+                 
 if __name__ == "__main__":
     
     ALL_READER_RESULTS = []
-    
+    shit_talk = ['arrogant', 'big-headed', 'self-centred', 
+     'vain', 'boastful', 'pompous', 'confrontational', 
+     'hostile', 'belligerent', 'nasty', 'deceitful', 
+     'dishonest', 'sneaky', 'untrustworthy', 'narrow-minded', 
+     'unpredictable', 'vague', 'unreliable', 'careless', 
+     'irresponsible', 'foolish', 'indecisive', 'weak-willed', 
+     'weak', 'vulgar'
+    ]
     poster = FbPoster()
     for reader in [
         ReutersParser(), 
@@ -139,14 +158,15 @@ if __name__ == "__main__":
         for target in ["TRUMP", "SANDER"]:
             if target in article["title"]:
                 testimonial = TextBlob(article["summary"])
+                log.write_to_log(article.update({"sentiment": testimonial.sentiment.polarity}))
                 if target == "TRUMP" and testimonial.sentiment.polarity < negative_post_threshold:
-                    negative_post = "Trump is an idiot! Vote 'em out! {}".format(article["url"])
+                    negative_post = "Trump is {} Vote 'em out! {}".format(random.choice(shit_talk), article["url"])
                     negative_post_threshold = testimonial.sentiment.polarity
                 if testimonial.sentiment.polarity > postive_post_threshold and target == "SANDERS":
-                    negative_post = "#BernieBros {}".format(article["url"])
+                    postive_post = "Vote for Bernie! -BernieBrobot {}".format(article["url"])
                     postive_post_threshold = testimonial.sentiment.polarity
     if bool(negative_post):
         poster.post_sentiment(negative_post)
     if bool(postive_post):
-        poster.post_sentiment(negative_post)
+        poster.post_sentiment(postive_post)
 
