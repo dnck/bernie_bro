@@ -6,3 +6,4 @@ include/
 bin/
 __pycache__
 rss_reader.py
+log.log
