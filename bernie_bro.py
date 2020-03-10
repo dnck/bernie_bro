@@ -111,22 +111,17 @@ class ReutersParser(RssReader):
 class FbPoster():
     def __init__(self):
         self.poster = fb_postman.FBPostMan()
-        #self.log = log
-        #self.log.write_to_log("entered fbposter")
     def post_sentiment(self, message):
         self.poster.set_up()
-        #self.log.write_to_log("did the set up")
         self.poster.login()
-        #self.log.write_to_log("logged in")
         self.poster.post_news(msg=message)
-        #self.log.write_to_log("posted the message")
         time.sleep(1)
-        #self.log.write_to_log("all done")
         self.poster.tear_down()
 
 class Logger():
     def __init__(self):
-        self.log = "/home/dnck/bernie_bro/log.log"
+        self.log = "/home/dnck/bernie_bro/log.json"
+
     def write_to_log(self, data):
         with open(self.log, 'a') as outfile:
             outfile.write(json.dumps(data))
@@ -135,7 +130,9 @@ class Logger():
 
 
 if __name__ == "__main__":
+
     log = Logger()
+
     shit_talk = ['arrogant', 'big-headed', 'self-centred', 
          'vain', 'boastful', 'pompous', 'confrontational', 
          'hostile', 'belligerent', 'nasty', 'deceitful', 
@@ -144,10 +141,11 @@ if __name__ == "__main__":
          'irresponsible', 'foolish', 'indecisive', 'weak-willed', 
          'weak', 'vulgar'
     ]
-    #log.write_to_log(str(os.environ['PATH']))
+
     ALL_READER_RESULTS = []
-    #log.write_to_log("entered main")
+
     poster = FbPoster()
+
     for reader in [
         ReutersParser(),
         WashingtonPostParser(),
@@ -156,20 +154,22 @@ if __name__ == "__main__":
     ]:
         reader.parse_feed()
         ALL_READER_RESULTS += reader.result_set
+
     postive_post_threshold = 0
     postive_post = ""
     negative_post_threshold = 0
     negative_post = ""
+
     for article in ALL_READER_RESULTS:
-        for target in ["TRUMP", "SANDER"]:
-            if target in article["title"]:
+        for target in ["trump", "sanders"]:
+            if target in article["summary"].lower():
                 testimonial = TextBlob(article["summary"])
                 log.write_to_log(article.update({"sentiment": testimonial.sentiment.polarity}))
-                if target == "TRUMP" and testimonial.sentiment.polarity < negative_post_threshold:
-                    negative_post = "Trump is {} Vote 'em out! {}".format(random.choice(shit_talk), article["url"])
+                if target == "trump" and testimonial.sentiment.polarity < negative_post_threshold:
+                    negative_post = "Trump is {}! Vote 'em out! {}".format(random.choice(shit_talk), article["url"])
                     negative_post_threshold = testimonial.sentiment.polarity
-                if testimonial.sentiment.polarity > postive_post_threshold and target == "SANDERS":
-                    postive_post = "Vote for Bernie! -BernieBrobot {}".format(article["url"])
+                if testimonial.sentiment.polarity > postive_post_threshold and target == "sanders":
+                    postive_post = "Vote for Bernie! {}".format(article["url"])
                     postive_post_threshold = testimonial.sentiment.polarity
     if bool(negative_post):
         poster.post_sentiment(negative_post)
