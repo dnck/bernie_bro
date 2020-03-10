@@ -59,8 +59,7 @@ class FBPostMan():
             raise ValueError("User must be logged to use this feature.")
         post_box=self.browser.find_element_by_xpath(self.edit_post_box_syntax)
         post_box.send_keys(msg)
-        time.sleep(2)
-        
+        time.sleep(6)
         try:
             post_button = \
                 self.browser.find_element_by_xpath(self.post_button_syntax)

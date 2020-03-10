@@ -1,4 +1,5 @@
 import time
+import argparse
 import json
 import random
 import os
@@ -7,6 +8,9 @@ import requests
 import bleach
 from textblob import TextBlob
 import fb_postman
+
+
+SCRIPT_DIRNAME, SCRIPT_FILENAME = os.path.split(os.path.abspath(__file__))
 
 common_english_words = [
                         "a", "about", "after", "all", "an", "and", "any",
@@ -115,37 +119,50 @@ class FbPoster():
         self.poster.set_up()
         self.poster.login()
         self.poster.post_news(msg=message)
-        time.sleep(1)
+        time.sleep(4)
         self.poster.tear_down()
 
 class Logger():
     def __init__(self):
-        self.log = "/home/dnck/bernie_bro/log.json"
+        self.log = os.path.join(SCRIPT_DIRNAME, "berniebro-log.json")
 
     def write_to_log(self, data):
-        with open(self.log, 'a') as outfile:
-            outfile.write(json.dumps(data))
+        with open(self.log, "a") as outfile:
+            json.dump(data, outfile, indent=4)
+            
+    def write_comma(self):
+        with open(self.log, "a") as outfile:
             outfile.write(",")
-            outfile.close()
-
+    
+            
 
 if __name__ == "__main__":
 
+    parser = argparse.ArgumentParser(
+            description="Demo argparse"
+        )
+    parser.add_argument("candidate",
+        metavar="candidate",
+        type=str,
+        help="trump or sanders"
+    )
+    args = parser.parse_args()
+    
     log = Logger()
-
-    shit_talk = ['arrogant', 'big-headed', 'self-centred', 
-         'vain', 'boastful', 'pompous', 'confrontational', 
-         'hostile', 'belligerent', 'nasty', 'deceitful', 
+    
+    shit_talk = ['arrogant', 'big-headed and small handed', 'self-centred', 
+         'vain', 'a pompous jackass', 
+         'hostile to science', 'a belligerent fool', 'nasty to women', 'deceitful', 
          'dishonest', 'sneaky', 'untrustworthy', 'narrow-minded', 
-         'unpredictable', 'vague', 'unreliable', 'careless', 
-         'irresponsible', 'foolish', 'indecisive', 'weak-willed', 
-         'weak', 'vulgar'
+         'unpredictable', 'unreliable', 
+         'weak-willed', 
+         'weak', "out of gas", "a frail orange clown"
     ]
-
+    
     ALL_READER_RESULTS = []
-
+    
     poster = FbPoster()
-
+    
     for reader in [
         ReutersParser(),
         WashingtonPostParser(),
@@ -154,25 +171,23 @@ if __name__ == "__main__":
     ]:
         reader.parse_feed()
         ALL_READER_RESULTS += reader.result_set
-
-    postive_post_threshold = 0
-    postive_post = ""
-    negative_post_threshold = 0
-    negative_post = ""
-
+    
+    logdump = []
+    post_threshold = 0
+    post = ""
     for article in ALL_READER_RESULTS:
-        for target in ["trump", "sanders"]:
-            if target in article["summary"].lower():
-                testimonial = TextBlob(article["summary"])
-                log.write_to_log(article.update({"sentiment": testimonial.sentiment.polarity}))
-                if target == "trump" and testimonial.sentiment.polarity < negative_post_threshold:
-                    negative_post = "Trump is {}! Vote 'em out! {}".format(random.choice(shit_talk), article["url"])
-                    negative_post_threshold = testimonial.sentiment.polarity
-                if testimonial.sentiment.polarity > postive_post_threshold and target == "sanders":
-                    postive_post = "Vote for Bernie! {}".format(article["url"])
-                    postive_post_threshold = testimonial.sentiment.polarity
-    if bool(negative_post):
-        poster.post_sentiment(negative_post)
-    if bool(postive_post):
-        poster.post_sentiment(postive_post)
+        if args.candidate in article["summary"].lower():
+            testimonial = TextBlob(article["summary"])
+            article.update({"sentiment": testimonial.sentiment.polarity})
+            logdump.append(article)
+            if args.candidate == "trump" and testimonial.sentiment.polarity < post_threshold:
+                post = "Trump is {}! Vote 'em out! {} ".format(random.choice(shit_talk), article["url"])
+                post_threshold = testimonial.sentiment.polarity
+            if args.candidate == "sanders" and testimonial.sentiment.polarity > post_threshold :
+                post = "Vote for Bernie! {} ".format(article["url"])
+                post_threshold = testimonial.sentiment.polarity
+    log.write_to_log(logdump)
+    log.write_comma()
+    if bool(post):
+        poster.post_sentiment(post)
 
