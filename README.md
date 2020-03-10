@@ -108,6 +108,7 @@ Your crontab should look like this,
 # 
 # m h  dom mon dow   command
 0 10 * * *  /bin/bash /home/<user>/bernie_bro/vote_bernie.sh >/home/<user>/bernie_bro/log.log 2>&1
+0 10 * * *  /bin/bash /home/<user>/bernie_bro/impeach_trump.sh >/home/<user>/bernie_bro/log.log 2>&1
 ```
 
 Every morning at 10am, bernie_bro will post for you.
