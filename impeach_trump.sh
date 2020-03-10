@@ -6,6 +6,6 @@ PATH=$PATH:/usr/local/bin
 
 source /home/dnck/bernie_bro/bin/activate
 
-python /home/dnck/bernie_bro/bernie_bro.py sanders
+python /home/dnck/bernie_bro/bernie_bro.py trump
 
 deactivate
