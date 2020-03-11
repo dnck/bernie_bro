@@ -38,7 +38,20 @@ class RssReader():
         return feed
     def sanitize(self, text):
         return bleach.clean(text, strip=True)
-
+    def strip_html(self, html_str):
+        """
+        a wrapper for bleach.clean() that strips ALL tags from the input
+        """
+        tags = []
+        attr = {}
+        styles = []
+        strip = True
+        return bleach.clean(html_str,
+                            tags=tags,
+                            attributes=attr,
+                            styles=styles,
+                            strip=strip)
+                            
 class WashingtonPostParser(RssReader):
     def __init__(self):
         self.news_endpoints = [
@@ -54,7 +67,7 @@ class WashingtonPostParser(RssReader):
                 self.result_set.append(
                     {
                     "title": entry["title"].upper(),
-                    "summary": self.sanitize(entry["summary"]),
+                    "summary": self.strip_html(entry["summary"]),
                     "url": entry["links"][0]["href"].split("/?utm_source")[0]
                     }
                 )
@@ -72,7 +85,7 @@ class NPRRssParser(RssReader):
                 self.result_set.append(
                     {
                     "title": entry["title"].upper(),
-                    "summary": self.sanitize(entry["description"]),
+                    "summary": self.strip_html(entry["description"]),
                     "url": entry["link"]
                     }
                 )
@@ -91,7 +104,7 @@ class NYTRssParser(RssReader):
                 self.result_set.append(
                     {
                     "title": entry["title"].upper(),
-                    "summary": self.sanitize(entry["description"]),
+                    "summary": self.strip_html(entry["description"]),
                     "url": entry["link"]
                     }
                 )
@@ -107,11 +120,47 @@ class ReutersParser(RssReader):
                 self.result_set.append(
                     {
                     "title": entry["title"].upper(),
-                    "summary": self.sanitize(entry["summary"].split("<")[0]),
+                    "summary": self.strip_html(entry["summary"].split("<")[0]),
                     "url": entry["link"]
                     }
                 )
 
+class VoxParser(RssReader):
+    def __init__(self):
+        self.news_endpoints = ["https://www.vox.com/rss/index.xml"]
+        self.result_set = []
+    def parse_feed(self):
+        for url in self.news_endpoints:
+            feed = self.get_feed(url)
+            for entry in feed["entries"]:
+                self.result_set.append(
+                    {
+                    "title": entry["title"].upper(),
+                    "summary": self.strip_html(entry["content"][0]["value"]),
+                    "url": entry["link"]
+                    }
+                )
+          
+class SlateParser(RssReader):
+    """
+    Slate seems pretty inflammatory... not using.
+    """
+    def __init__(self):
+        self.news_endpoints = ["https://slate.com/feeds/news-and-politics.rss"]
+        self.result_set = []
+    def parse_feed(self):
+        for url in self.news_endpoints:
+            feed = self.get_feed(url)
+            for entry in feed["entries"]:
+                self.result_set.append(
+                    {
+                    "title": entry["title"].upper(),
+                    "summary": entry["title"] + " " + self.strip_html(entry["summary"]),
+                    "url": entry["link"]
+                    }
+                )
+
+    
 class FbPoster():
     def __init__(self):
         self.poster = fb_postman.FBPostMan()
@@ -127,6 +176,7 @@ class Logger():
         self.log = os.path.join(SCRIPT_DIRNAME, "berniebro-log.json")
 
     def write_to_log(self, data):
+        data = self.truncate_summary(data)
         with open(self.log, "a") as outfile:
             json.dump(data, outfile, indent=4)
             
@@ -134,10 +184,16 @@ class Logger():
         with open(self.log, "a") as outfile:
             outfile.write(",")
     
+    def truncate_summary(self, data):
+        try:
+            data["summary"] = data["summary"][0:128]
+        except:
+            pass
+        return data
+    
             
-
 if __name__ == "__main__":
-
+    
     parser = argparse.ArgumentParser(
             description="Demo argparse"
         )
@@ -167,7 +223,8 @@ if __name__ == "__main__":
         ReutersParser(),
         WashingtonPostParser(),
         NYTRssParser(),
-        NPRRssParser()
+        NPRRssParser(),
+        VoxParser()
     ]:
         reader.parse_feed()
         ALL_READER_RESULTS += reader.result_set
