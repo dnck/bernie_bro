@@ -9,6 +9,17 @@
 
 ### python >= 3.7
 
+pyenv for Ubuntu focal 20.04.1 LTS maybe you need the following dependencies for python 3.9.1:
+```
+apt install zlib1g-dev
+apt install libssl-dev
+apt install libbz2-dev
+apt install libreadline-dev
+apt install sqlite3
+apt install libsqlite3-dev
+
+```
+
 On Linux/Ubuntu/Raspberry Pi:
 ```
 git clone https://github.com/pyenv/pyenv.git ~/.pyenv && \
